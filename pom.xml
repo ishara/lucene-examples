@@ -5,7 +5,10 @@
   <artifactId>luceneExamples</artifactId>
   <packaging>jar</packaging>
   <version>1.0-SNAPSHOT</version>
-  <name>luceneExamples</name>
+	<properties>
+		<lucene-version>5.5.5</lucene-version>
+	</properties>
+	<name>luceneExamples</name>
   <url>http://maven.apache.org</url>
   <dependencies>
   	<dependency>
@@ -16,22 +19,22 @@
   	<dependency>
   		<groupId>org.apache.lucene</groupId>
   		<artifactId>lucene-core</artifactId>
-  		<version>4.2.1</version>
+  		<version>${lucene-version}</version>
   	</dependency>
   	<dependency>
   		<groupId>org.apache.lucene</groupId>
   		<artifactId>lucene-queries</artifactId>
-  		<version>4.2.1</version>
+  		<version>${lucene-version}</version>
   	</dependency>
   	<dependency>
   		<groupId>org.apache.lucene</groupId>
   		<artifactId>lucene-analyzers-common</artifactId>
-  		<version>4.2.1</version>
+  		<version>${lucene-version}</version>
   	</dependency>
   	<dependency>
   		<groupId>org.apache.lucene</groupId>
   		<artifactId>lucene-suggest</artifactId>
-  		<version>4.2.1</version>
+  		<version>${lucene-version}</version>
   	</dependency>
   </dependencies>
 </project>

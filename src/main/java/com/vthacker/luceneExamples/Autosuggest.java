@@ -1,29 +1,23 @@
 package com.vthacker.luceneExamples;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.Reader;
-import java.nio.CharBuffer;
-import java.util.List;
-
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.analysis.Tokenizer;
 import org.apache.lucene.analysis.core.LowerCaseFilter;
 import org.apache.lucene.analysis.core.StopFilter;
 import org.apache.lucene.analysis.core.WhitespaceTokenizer;
-import org.apache.lucene.index.AtomicReader;
-import org.apache.lucene.index.DirectoryReader;
-import org.apache.lucene.index.IndexReader;
-import org.apache.lucene.index.SlowCompositeReaderWrapper;
-import org.apache.lucene.index.Terms;
-import org.apache.lucene.index.TermsEnum;
-import org.apache.lucene.search.spell.TermFreqIterator;
+import org.apache.lucene.index.*;
+import org.apache.lucene.search.suggest.InputIterator;
 import org.apache.lucene.search.suggest.Lookup.LookupResult;
 import org.apache.lucene.search.suggest.analyzing.FuzzySuggester;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.MMapDirectory;
-import org.apache.lucene.util.Version;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.Reader;
+import java.nio.CharBuffer;
+import java.util.List;
 
 public class Autosuggest {
   
@@ -44,13 +38,13 @@ public class Autosuggest {
           "they", "this", "to", "was", "will", "with"};
       
       @Override
-      protected TokenStreamComponents createComponents(final String fieldName, final Reader reader) {
-        final Tokenizer tokenizer = new WhitespaceTokenizer(Version.LUCENE_42, reader);
-        TokenStream tok = new LowerCaseFilter(Version.LUCENE_42, tokenizer);
-        tok = new StopFilter(Version.LUCENE_42, tok, StopFilter.makeStopSet(Version.LUCENE_42, stopWords, true));
+      protected TokenStreamComponents createComponents(final String fieldName) {
+        final Tokenizer tokenizer = new WhitespaceTokenizer();
+        TokenStream tok = new LowerCaseFilter(tokenizer);
+        tok = new StopFilter(tok, StopFilter.makeStopSet( stopWords, true));
         return new TokenStreamComponents(tokenizer, tok) {
           @Override
-          protected void setReader(final Reader reader) throws IOException {
+          protected void setReader(final Reader reader) {
             super.setReader(reader);
           }
         };
@@ -67,7 +61,7 @@ public class Autosuggest {
    */
   public boolean buildSuggestor(String indexDir) {
     try {
-      Directory dir = new MMapDirectory(new File(indexDir));
+      Directory dir = new MMapDirectory(new File(indexDir).toPath());
       return buildSuggestor(dir, FIELD);
     } catch (IOException e) {
       e.printStackTrace();
@@ -84,7 +78,7 @@ public class Autosuggest {
    */
   public boolean buildSuggestor(String indexDir, String fieldName) {
     try {
-      Directory dir = new MMapDirectory(new File(indexDir));
+      Directory dir = new MMapDirectory(new File(indexDir).toPath());
       return buildSuggestor(dir, fieldName);
     } catch (IOException e) {
       e.printStackTrace();
@@ -98,15 +92,15 @@ public class Autosuggest {
     try {
       
       reader = DirectoryReader.open(directory);
-      AtomicReader aReader = SlowCompositeReaderWrapper.wrap(reader); // Should use reader.leaves instead ?
+      LeafReader aReader = SlowCompositeReaderWrapper.wrap(reader); // Should use reader.leaves instead ?
       Terms terms = aReader.terms(fieldName);
       
       if (terms == null) return false; 
       
-      TermsEnum termEnum = terms.iterator(null);
-      TermFreqIterator wrapper = new TermFreqIterator.TermFreqIteratorWrapper(termEnum);
-      
-      suggestor.build(wrapper);
+      TermsEnum termEnum = terms.iterator();
+//      TermFreqIterator wrapper = new TermFreqIterator.TermFreqIteratorWrapper(termEnum);
+      InputIterator inputIterator =new InputIterator.InputIteratorWrapper(termEnum);
+      suggestor.build(inputIterator);
       
     } catch (IOException e) {
       e.printStackTrace();
@@ -116,7 +110,7 @@ public class Autosuggest {
     return true;
   }
   
-  public String[] suggest(String q) {
+  public String[] suggest(String q) throws IOException {
     List<LookupResult> results = suggestor.lookup(CharBuffer.wrap(q), false, Autosuggest.RESULTS_TO_DISPLAY);
     String[] autosuggestResults = new String[results.size()];
     for(int i=0; i < results.size(); i++) {

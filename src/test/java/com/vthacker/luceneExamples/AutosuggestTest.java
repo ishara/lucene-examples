@@ -1,19 +1,17 @@
 package com.vthacker.luceneExamples;
 
-import java.io.IOException;
-import java.io.StringReader;
-
+import junit.framework.Test;
+import junit.framework.TestCase;
+import junit.framework.TestSuite;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.RAMDirectory;
-import org.apache.lucene.util.Version;
 
-import junit.framework.Test;
-import junit.framework.TestCase;
-import junit.framework.TestSuite;
+import java.io.IOException;
+import java.io.StringReader;
 
 public class AutosuggestTest extends TestCase {
   
@@ -42,7 +40,7 @@ public class AutosuggestTest extends TestCase {
     String[] docs = {"foo","food","fail"};
     
     Directory dir = new RAMDirectory();
-    IndexWriterConfig iwConfig = new IndexWriterConfig(Version.LUCENE_42, Autosuggest.getAnalyzer());
+    IndexWriterConfig iwConfig = new IndexWriterConfig( Autosuggest.getAnalyzer());
     
     IndexWriter iw = new IndexWriter(dir, iwConfig);
     
